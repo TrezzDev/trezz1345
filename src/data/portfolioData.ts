@@ -240,7 +240,7 @@ export const projectsData: Project[] = [
     ],
     challenges: 'Dikerjakan dan diarsiteki secara mandiri dari nol hingga tahap produksi karena keterbatasan anggota tim.',
     role: 'Full-Stack Engineer',
-    demoUrl: 'https://cimart.desa.id',
+    demoUrl: 'https://cimart.ryhndastra.site',
     isPrivateRepo: true,
     privateRepoReason: 'Repository privat karena hak cipta institusi & kerahasiaan data',
     imageUrl: '/projects/CibendaMart.png',

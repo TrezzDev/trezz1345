@@ -62,11 +62,14 @@ export const SwimmingDuck: React.FC<SwimmingDuckProps> = ({
 
   useEffect(() => {
     if (expression === 'impact') {
-      setIsGrabbed(false);
-      // Only waddle if the duck was dropped on the sand
-      if (y.get() > WATER_SHALLOW_LINE_Y + 12) {
-        setIsWaddling(true);
-      }
+      const timer = setTimeout(() => {
+        setIsGrabbed(false);
+        // Only waddle if the duck was dropped on the sand
+        if (y.get() > WATER_SHALLOW_LINE_Y + 12) {
+          setIsWaddling(true);
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [expression, y]);
 
@@ -83,8 +86,10 @@ export const SwimmingDuck: React.FC<SwimmingDuckProps> = ({
 
   useEffect(() => {
     if (isGrabbed || isWaddling) {
-      setCurrentQuip(null);
-      return;
+      const timer = setTimeout(() => {
+        setCurrentQuip(null);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     const quipInterval = setInterval(() => {

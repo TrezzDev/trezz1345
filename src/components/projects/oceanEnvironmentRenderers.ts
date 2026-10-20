@@ -7,28 +7,37 @@ export function renderWaterBody(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  depthLevel: 1 | 2 | 3 | 4
+  depthLevel: 1 | 2 | 3 | 4 | 5
 ): void {
-  let waterTop = '#38bdf8';
-  let waterMid = '#0284c7';
-  let waterBottom = '#02587a';
+  let waterTop: string;
+  let waterMid: string;
+  let waterBottom: string;
 
   if (depthLevel === 1) {
+    // Flagship 1: Surface coastal water (sunny cyan/blue)
     waterTop = '#38bdf8';
     waterMid = '#0284c7';
     waterBottom = '#0369a1';
   } else if (depthLevel === 2) {
-    waterTop = '#38bdf8';
-    waterMid = '#0284c7';
-    waterBottom = '#02587a';
-  } else if (depthLevel === 3) {
+    // Flagship 2: Clear tropical mid-depth (medium blue)
     waterTop = '#0284c7';
-    waterMid = '#02587a';
-    waterBottom = '#01283a';
+    waterMid = '#0369a1';
+    waterBottom = '#075985';
+  } else if (depthLevel === 3) {
+    // Flagship 3: Deeper oceanic layer (dark blue)
+    waterTop = '#0369a1';
+    waterMid = '#075985';
+    waterBottom = '#0c4a6e';
+  } else if (depthLevel === 4) {
+    // Flagship 4: Deep twilight sea (darkest flagship, but distinctly blue, not black)
+    waterTop = '#075985';
+    waterMid = '#0c4a6e';
+    waterBottom = '#082f49';
   } else {
-    waterTop = '#02587a';
-    waterMid = '#024968';
-    waterBottom = '#023850';
+    // Depth 5: All projects dock overview - abyssal floor (darkest of all)
+    waterTop = '#082f49';
+    waterMid = '#03192e';
+    waterBottom = '#010a14';
   }
 
   const waterGrad = ctx.createLinearGradient(0, 0, 0, height);
@@ -43,7 +52,7 @@ export function renderSandLayers(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  depthLevel: 1 | 2 | 3 | 4,
+  depthLevel: 1 | 2 | 3 | 4 | 5,
   time: number
 ): WaterBounds {
   let waterMinY = 0;
@@ -55,11 +64,11 @@ export function renderSandLayers(
 
     ctx.save();
     const topSandGrad = ctx.createLinearGradient(0, 0, 0, topSandHeight);
-    topSandGrad.addColorStop(0, '#dfcca8');
-    topSandGrad.addColorStop(0.25, '#ebdcae');
-    topSandGrad.addColorStop(0.55, '#f6e8ba');
-    topSandGrad.addColorStop(0.80, '#faeed1');
-    topSandGrad.addColorStop(1.0, '#fff9d4');
+    topSandGrad.addColorStop(0, '#f8ecc8');
+    topSandGrad.addColorStop(0.25, '#f5e4ba');
+    topSandGrad.addColorStop(0.55, '#ebd7a8');
+    topSandGrad.addColorStop(0.80, '#e2cb96');
+    topSandGrad.addColorStop(1.0, '#dfcca8');
     ctx.fillStyle = topSandGrad;
 
     // coastal shoreline fill
@@ -79,7 +88,7 @@ export function renderSandLayers(
     ctx.closePath();
     ctx.fill();
 
-    // shoreline foam edge
+    // shoreline foam edge (dual-layer soft translucent wave)
     ctx.beginPath();
     for (let x = 0; x <= width; x += 6) {
       const sy =
@@ -89,21 +98,35 @@ export function renderSandLayers(
       if (x === 0) ctx.moveTo(x, sy);
       else ctx.lineTo(x, sy);
     }
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+
+    ctx.beginPath();
+    for (let x = 0; x <= width; x += 6) {
+      const sy =
+        topSandHeight +
+        Math.sin(x * 0.005 + time * 0.8) * 8 +
+        Math.cos(x * 0.009 - time * 0.4) * 4;
+      if (x === 0) ctx.moveTo(x, sy);
+      else ctx.lineTo(x, sy);
+    }
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     ctx.restore();
-  } else if (depthLevel === 4) {
+  } else if (depthLevel === 5) {
     const bottomSandY = height * 0.82;
     waterMaxY = bottomSandY;
 
     ctx.save();
     const bottomSandGrad = ctx.createLinearGradient(0, bottomSandY, 0, height);
-    bottomSandGrad.addColorStop(0, '#f0dc9f');
-    bottomSandGrad.addColorStop(0.3, '#f6e8ba');
-    bottomSandGrad.addColorStop(0.7, '#fcf3d1');
-    bottomSandGrad.addColorStop(1.0, '#fff9d4');
+    bottomSandGrad.addColorStop(0, '#ebdcae');
+    bottomSandGrad.addColorStop(0.25, '#f2e4b8');
+    bottomSandGrad.addColorStop(0.55, '#f7ebc2');
+    bottomSandGrad.addColorStop(0.82, '#fbf2d0');
+    bottomSandGrad.addColorStop(1.0, '#fdf6db');
     ctx.fillStyle = bottomSandGrad;
 
     // seabed sand fill
@@ -123,7 +146,7 @@ export function renderSandLayers(
     ctx.closePath();
     ctx.fill();
 
-    // seabed foam edge
+    // seabed foam edge (dual-layer soft translucent wave)
     ctx.beginPath();
     for (let x = 0; x <= width; x += 6) {
       const sy =
@@ -133,8 +156,21 @@ export function renderSandLayers(
       if (x === 0) ctx.moveTo(x, sy);
       else ctx.lineTo(x, sy);
     }
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+
+    ctx.beginPath();
+    for (let x = 0; x <= width; x += 6) {
+      const sy =
+        bottomSandY +
+        Math.sin(x * 0.004 + time * 0.6) * 10 +
+        Math.cos(x * 0.008 - time * 0.3) * 5;
+      if (x === 0) ctx.moveTo(x, sy);
+      else ctx.lineTo(x, sy);
+    }
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     ctx.restore();

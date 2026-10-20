@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type MotionValue } from 'framer-motion';
 import {
   ArrowUpRight,
   ExternalLink,
@@ -14,26 +14,30 @@ import { AnimatedOceanSlideBackground } from './AnimatedOceanSlideBackground';
 interface FlagshipSlideCardProps {
   project: Project;
   index: number;
-  yMotion?: any;
-  opacityMotion?: any;
-  depthLevel?: 1 | 2 | 3;
+  totalFlagships?: number;
+  yMotion?: MotionValue<string> | string;
+  opacityMotion?: MotionValue<number> | number;
+  depthLevel?: 1 | 2 | 3 | 4 | 5;
   onSelectProject: (project: Project) => void;
 }
 
 export const FlagshipSlideCard: React.FC<FlagshipSlideCardProps> = ({
   project,
   index,
+  totalFlagships = 4,
   yMotion = '0%',
   opacityMotion = 1,
-  depthLevel = (index + 1) as 1 | 2 | 3,
+  depthLevel = ((index + 1) as 1 | 2 | 3 | 4 | 5),
   onSelectProject
 }) => {
-  const zIndex = index === 0 ? 10 : index === 1 ? 20 : 30;
+  const zIndex = (index + 1) * 10;
 
   return (
     <motion.div
       style={{ y: yMotion, opacity: opacityMotion, zIndex }}
-      className="absolute inset-0 w-full h-full flex flex-col justify-between overflow-hidden select-none bg-[#0284c7] shadow-[0_-8px_24px_rgba(15,23,42,0.35)]"
+      className={`absolute inset-0 w-full h-full flex flex-col justify-between overflow-hidden select-none bg-[#0284c7] ${
+        index === 0 ? '' : 'shadow-[0_-8px_24px_rgba(15,23,42,0.35)]'
+      }`}
     >
       {/* background ocean */}
       <AnimatedOceanSlideBackground depthLevel={depthLevel} />
@@ -42,7 +46,14 @@ export const FlagshipSlideCard: React.FC<FlagshipSlideCardProps> = ({
       <div className="relative z-10 max-w-7xl mx-auto w-full pt-20 sm:pt-24 px-6 sm:px-12 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#fde047] text-[#0f172a] text-xs font-mono font-black border-2 border-[#0f172a] shadow-[3px_3px_0px_#0f172a]">
-            <span>0{index + 1} // {project.category === 'fullstack' ? 'FULL-STACK WEB' : 'MOBILE FLUTTER'}</span>
+            <span>
+              0{index + 1} //{' '}
+              {project.category === 'fullstack'
+                ? 'FULL-STACK WEB'
+                : project.stack.includes('Flutter')
+                ? 'MOBILE FLUTTER'
+                : 'MOBILE PWA'}
+            </span>
           </div>
 
           <span className="text-xs font-mono font-bold text-[#0f172a] bg-[#fffdf5]/90 px-3 py-1 rounded-lg border border-[#0f172a]/30 hidden sm:inline-block">
@@ -51,7 +62,7 @@ export const FlagshipSlideCard: React.FC<FlagshipSlideCardProps> = ({
         </div>
 
         <div className="hidden sm:block text-xs font-mono font-black text-[#0f172a] px-3.5 py-1.5 rounded-xl bg-[#fffdf5] border-2 border-[#0f172a] shadow-[3px_3px_0px_#0f172a]">
-          FLAGSHIP {index + 1} / 3
+          FLAGSHIP {index + 1} / {totalFlagships}
         </div>
       </div>
 
@@ -133,13 +144,13 @@ export const FlagshipSlideCard: React.FC<FlagshipSlideCardProps> = ({
               </button>
 
               {/* demo or app status */}
-              {project.isMobileApp ? (
+              {project.isMobileApp && !project.demoUrl ? (
                 <div
                   className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-[#e0f2fe] text-[#0369a1] text-[11px] sm:text-xs font-mono font-bold border-2 border-[#0284c7]/50 cursor-not-allowed opacity-90"
                   title={project.demoStatusLabel || 'Aplikasi Mobile Native'}
                 >
                   <Smartphone className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#0284c7]" />
-                  <span>Mobile Native</span>
+                  <span>{project.demoStatusLabel || 'Mobile Native'}</span>
                 </div>
               ) : project.demoUrl ? (
                 <a
@@ -148,8 +159,8 @@ export const FlagshipSlideCard: React.FC<FlagshipSlideCardProps> = ({
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-[#fde047] hover:bg-[#facc15] text-[#0f172a] text-[11px] sm:text-xs font-mono font-black border-2 border-[#0f172a] shadow-[2px_2px_0px_#0f172a] sm:shadow-[3px_3px_0px_#0f172a] hover:translate-x-0.5 hover:translate-y-0.5 active:shadow-none transition-all"
                 >
-                  <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  <span>Live Demo</span>
+                  {project.isMobileApp ? <Smartphone className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+                  <span>{project.isMobileApp ? 'Buka PWA App' : 'Live Demo'}</span>
                 </a>
               ) : null}
 

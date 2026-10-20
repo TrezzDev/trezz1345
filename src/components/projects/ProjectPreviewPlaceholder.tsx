@@ -27,13 +27,21 @@ export const ProjectPreviewPlaceholder: React.FC<ProjectPreviewPlaceholderProps>
           <span className="w-3 h-3 rounded-full bg-[#fde047] border border-[#0f172a]" />
           <span className="w-3 h-3 rounded-full bg-[#4ade80] border border-[#0f172a]" />
           <div className="ml-2 px-3 py-0.5 rounded-md bg-[#fffdf5] border border-[#0f172a]/50 text-[11px] font-mono font-bold text-[#0f172a] truncate max-w-[160px] sm:max-w-[240px]">
-            {isMobile ? `app://${project.id}.flutter` : `https://${project.id}.app`}
+            {project.demoUrl
+              ? project.demoUrl.replace(/^https?:\/\//, '')
+              : isMobile
+              ? (project.stack.includes('Flutter') ? `app://${project.id}.flutter` : `app://${project.id}.mobile`)
+              : `https://${project.id}.app`}
           </div>
         </div>
 
         <div className="flex items-center gap-1.5 text-[10px] font-mono font-black px-2.5 py-0.5 rounded-md bg-[#fde047] text-[#0f172a] border border-[#0f172a]">
           {isMobile ? <Smartphone className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
-          <span>{isMobile ? 'FLUTTER NATIVE' : 'WEB PLATFORM'}</span>
+          <span>
+            {isMobile
+              ? (project.stack.includes('Flutter') ? 'FLUTTER NATIVE' : 'MOBILE PWA')
+              : 'WEB PLATFORM'}
+          </span>
         </div>
       </div>
 

@@ -9,8 +9,12 @@ export const JourneyOceanCanvas: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animId: number;
+    let animId: number | null = null;
     let time = 0;
+    let isVisible = false;
+    let isRunning = true;
+    let currentWidth = 0;
+    let currentHeight = 0;
 
     // bubbles
     const bubbles: { x: number; y: number; radius: number; speed: number; wobbleSpeed: number; seed: number }[] = [];
@@ -32,18 +36,23 @@ export const JourneyOceanCanvas: React.FC = () => {
     const handleResize = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight;
-      initBubbles(canvas.width, canvas.height);
+      currentWidth = parent.clientWidth;
+      currentHeight = parent.clientHeight;
+      canvas.width = currentWidth;
+      canvas.height = currentHeight;
+      initBubbles(currentWidth, currentHeight);
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
 
     const render = () => {
-      if (!ctx || !canvas) return;
-      const width = canvas.width;
-      const height = canvas.height;
+      if (!isRunning || !isVisible || !ctx || !canvas || currentWidth === 0) {
+        animId = null;
+        return;
+      }
+      const width = currentWidth;
+      const height = currentHeight;
 
       ctx.clearRect(0, 0, width, height);
       time += 0.016;
@@ -84,7 +93,7 @@ export const JourneyOceanCanvas: React.FC = () => {
       ctx.closePath();
       ctx.fill();
 
-      // white foam edge
+      // soft translucent foam edge
       ctx.beginPath();
       for (let x = -50; x <= width + 50; x += 8) {
         const sy =
@@ -94,8 +103,21 @@ export const JourneyOceanCanvas: React.FC = () => {
         if (x === -50) ctx.moveTo(x, sy);
         else ctx.lineTo(x, sy);
       }
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 6;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.lineWidth = 7;
+      ctx.stroke();
+
+      ctx.beginPath();
+      for (let x = -50; x <= width + 50; x += 8) {
+        const sy =
+          shorelineHeight +
+          Math.sin(x * 0.005 + time * 1.2) * 12 +
+          Math.cos(x * 0.008 - time * 0.7) * 6;
+        if (x === -50) ctx.moveTo(x, sy);
+        else ctx.lineTo(x, sy);
+      }
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = 2.5;
       ctx.stroke();
       ctx.restore();
 
@@ -197,10 +219,24 @@ export const JourneyOceanCanvas: React.FC = () => {
       animId = requestAnimationFrame(render);
     };
 
-    animId = requestAnimationFrame(render);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting;
+          if (isVisible && !animId && isRunning) {
+            animId = requestAnimationFrame(render);
+          }
+        });
+      },
+      { threshold: 0.02 }
+    );
+
+    observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      isRunning = false;
+      observer.disconnect();
+      if (animId) cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
     };
   }, []);

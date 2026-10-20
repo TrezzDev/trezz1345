@@ -75,7 +75,11 @@ export const ProjectCaseStudyModal: React.FC<ProjectCaseStudyModalProps> = ({
             <div>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                 <span className="text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider text-[#0f172a] bg-[#fde047] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border-2 border-[#0f172a]">
-                  {project.category === 'fullstack' ? 'FULL-STACK WEB ARCHITECTURE' : 'MOBILE FLUTTER SYSTEM'}
+                  {project.category === 'fullstack'
+                    ? 'FULL-STACK WEB ARCHITECTURE'
+                    : project.stack.includes('Flutter')
+                    ? 'MOBILE FLUTTER SYSTEM'
+                    : 'MOBILE PWA ARCHITECTURE'}
                 </span>
                 <span className="text-[10px] sm:text-xs font-mono font-bold text-[#64748b]">
                   // {project.role}
@@ -192,13 +196,13 @@ export const ProjectCaseStudyModal: React.FC<ProjectCaseStudyModalProps> = ({
           <div className="pt-6 border-t-2 border-[#0f172a]/20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3">
               {/* demo status */}
-              {project.isMobileApp ? (
+              {project.isMobileApp && !project.demoUrl ? (
                 <div
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#e0f2fe] text-[#0369a1] text-xs font-mono font-bold border-2 border-[#0284c7]/50 opacity-90 cursor-not-allowed"
                   title={project.demoStatusLabel || 'Aplikasi Mobile Native'}
                 >
                   <Smartphone className="w-4 h-4 text-[#0284c7]" />
-                  <span>Aplikasi Mobile Native (Demo/APK on request)</span>
+                  <span>{project.demoStatusLabel || 'Aplikasi Mobile Native (Demo/APK on request)'}</span>
                 </div>
               ) : project.demoUrl ? (
                 <a
@@ -207,8 +211,8 @@ export const ProjectCaseStudyModal: React.FC<ProjectCaseStudyModalProps> = ({
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-mono font-black border-2 border-[#0f172a] shadow-[3px_3px_0px_#0f172a] hover:translate-x-0.5 hover:translate-y-0.5 active:shadow-none transition-all"
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>Kunjungi Live Demo</span>
+                  {project.isMobileApp ? <Smartphone className="w-4 h-4" /> : <ExternalLink className="w-4 h-4" />}
+                  <span>{project.isMobileApp ? 'Buka Mobile PWA' : 'Kunjungi Live Demo'}</span>
                 </a>
               ) : null}
 

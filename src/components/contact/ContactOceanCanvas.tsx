@@ -31,8 +31,12 @@ export const ContactOceanCanvas: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animId: number;
+    let animId: number | null = null;
     let time = 0;
+    let isVisible = false;
+    let isRunning = true;
+    let currentWidth = 0;
+    let currentHeight = 0;
 
     // rising bubbles
     const bubbles: { x: number; y: number; radius: number; speed: number; wobbleSpeed: number; seed: number }[] = [];
@@ -51,12 +55,15 @@ export const ContactOceanCanvas: React.FC = () => {
       }
     };
 
+    const parent = canvas.parentElement;
+
     const handleResize = () => {
-      const parent = canvas.parentElement;
       if (!parent) return;
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight;
-      initBubbles(canvas.width, canvas.height);
+      currentWidth = parent.clientWidth;
+      currentHeight = parent.clientHeight;
+      canvas.width = currentWidth;
+      canvas.height = currentHeight;
+      initBubbles(currentWidth, currentHeight);
     };
 
     handleResize();
@@ -105,15 +112,17 @@ export const ContactOceanCanvas: React.FC = () => {
       }
     };
 
-    const parent = canvas.parentElement;
     if (parent) {
       parent.addEventListener('click', handleClick);
     }
 
     const render = () => {
-      if (!ctx || !canvas) return;
-      const width = canvas.width;
-      const height = canvas.height;
+      if (!isRunning || !isVisible || !ctx || !canvas || currentWidth === 0) {
+        animId = null;
+        return;
+      }
+      const width = currentWidth;
+      const height = currentHeight;
 
       ctx.clearRect(0, 0, width, height);
       time += 0.016;
@@ -298,10 +307,24 @@ export const ContactOceanCanvas: React.FC = () => {
       animId = requestAnimationFrame(render);
     };
 
-    animId = requestAnimationFrame(render);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting;
+          if (isVisible && !animId && isRunning) {
+            animId = requestAnimationFrame(render);
+          }
+        });
+      },
+      { threshold: 0.02 }
+    );
+
+    observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      isRunning = false;
+      observer.disconnect();
+      if (animId) cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
       if (parent) {
         parent.removeEventListener('click', handleClick);

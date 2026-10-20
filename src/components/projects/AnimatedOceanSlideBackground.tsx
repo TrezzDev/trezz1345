@@ -8,7 +8,7 @@ import {
 import { renderCreaturesByDepth } from './oceanCreatureRenderers';
 
 interface AnimatedOceanSlideBackgroundProps {
-  depthLevel: 1 | 2 | 3 | 4;
+  depthLevel: 1 | 2 | 3 | 4 | 5;
 }
 
 export const AnimatedOceanSlideBackground: React.FC<AnimatedOceanSlideBackgroundProps> = ({
@@ -22,22 +22,32 @@ export const AnimatedOceanSlideBackground: React.FC<AnimatedOceanSlideBackground
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animId: number;
+    let animId: number | null = null;
     let time = 0;
+    let isVisible = false;
+    let isRunning = true;
+    let currentWidth = 0;
+    let currentHeight = 0;
 
     const handleResize = () => {
       if (!canvas) return;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      currentWidth = window.innerWidth;
+      currentHeight = window.innerHeight;
+      canvas.width = currentWidth;
+      canvas.height = currentHeight;
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
 
     const render = () => {
-      if (!ctx || !canvas) return;
-      const width = canvas.width;
-      const height = canvas.height;
+      if (!isRunning || !isVisible || !ctx || !canvas || currentWidth === 0) {
+        animId = null;
+        return;
+      }
+
+      const width = currentWidth;
+      const height = currentHeight;
 
       ctx.clearRect(0, 0, width, height);
       time += 0.016;
@@ -60,10 +70,24 @@ export const AnimatedOceanSlideBackground: React.FC<AnimatedOceanSlideBackground
       animId = requestAnimationFrame(render);
     };
 
-    animId = requestAnimationFrame(render);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting;
+          if (isVisible && !animId && isRunning) {
+            animId = requestAnimationFrame(render);
+          }
+        });
+      },
+      { threshold: 0.02 }
+    );
+
+    observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      isRunning = false;
+      observer.disconnect();
+      if (animId) cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
     };
   }, [depthLevel]);

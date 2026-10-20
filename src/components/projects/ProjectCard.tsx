@@ -9,10 +9,10 @@ interface ProjectCardProps {
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onSelect }) => {
-  const categoryLabels = {
-    fullstack: 'Full-Stack Web',
-    mobile: 'Mobile Flutter App',
-    ai: 'AI & Computer Vision'
+  const getCategoryLabel = (p: Project) => {
+    if (p.category === 'fullstack') return 'Full-Stack Web';
+    if (p.stack.includes('Flutter')) return 'Mobile Flutter App';
+    return 'Mobile PWA App';
   };
 
   const categoryAccents = {
@@ -34,7 +34,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onSelect }) =
               categoryAccents[project.category]
             }`}
           >
-            {categoryLabels[project.category]}
+            {getCategoryLabel(project)}
           </span>
 
           <span className="text-xs font-mono text-[#94a3b8] group-hover:text-[#f8fafc] flex items-center gap-1 transition-colors">

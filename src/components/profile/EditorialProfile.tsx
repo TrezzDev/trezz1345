@@ -76,8 +76,9 @@ export const EditorialProfile: React.FC = () => {
   });
 
   const smoothScroll = useSpring(scrollYProgress, {
-    stiffness: 70,
-    damping: 20,
+    stiffness: 240,
+    damping: 30,
+    mass: 0.1,
     restDelta: 0.001
   });
 
@@ -94,6 +95,7 @@ export const EditorialProfile: React.FC = () => {
 
   const handleTriggerRebuild = () => {
     if (floodState !== 'flooded') return;
+    setRebuildProgress(0);
     setFloodState('rebuilding');
   };
 
@@ -101,8 +103,6 @@ export const EditorialProfile: React.FC = () => {
     if (floodState !== 'rebuilding') return;
 
     let currentVal = 0;
-    setRebuildProgress(0);
-
     const stepMs = 40;
     const totalDurationMs = 2000;
     const stepIncrement = 100 / (totalDurationMs / stepMs);
@@ -130,7 +130,7 @@ export const EditorialProfile: React.FC = () => {
     <section
       id="about"
       ref={sectionRef}
-      className="relative pt-24 pb-32 sm:pt-28 sm:pb-44 bg-[#fff9d4] overflow-hidden select-none"
+      className="relative pt-24 pb-32 sm:pt-28 sm:pb-44 bg-gradient-to-b from-[#fdf6db] via-[#f9ecd0] to-[#f7e8c4] overflow-hidden select-none"
     >
       <RebuildConstructionOverlay
         isRebuilding={floodState === 'rebuilding'}

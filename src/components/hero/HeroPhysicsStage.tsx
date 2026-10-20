@@ -55,6 +55,7 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
     const duckImpactTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastRippleTimeRef = useRef<number>(0);
     const returnTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastLetterHitTimeRef = useRef<Record<string, number>>({});
 
     const updateDuckExpression = useCallback((expr: DuckExpression) => {
       setDuckExpression(expr);
@@ -68,7 +69,8 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
         let didHitAny = false;
         const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
         const minThreshold = isMobile ? 65 : 130;
-        const maxDisplacement = isMobile ? 18 : 50;
+        const maxStageX = typeof window !== 'undefined' ? Math.max(160, window.innerWidth * 0.44) : 400;
+        const maxStageY = typeof window !== 'undefined' ? Math.max(140, window.innerHeight * 0.32) : 220;
 
         setLetters((prev) => {
           return prev.map((other) => {
@@ -104,8 +106,8 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
 
               return {
                 ...other,
-                posX: Math.max(-maxDisplacement, Math.min(maxDisplacement, other.posX + pushX)),
-                posY: Math.max(-maxDisplacement, Math.min(maxDisplacement, other.posY + pushY)),
+                posX: Math.max(-maxStageX, Math.min(maxStageX, other.posX + pushX)),
+                posY: Math.max(-maxStageY, Math.min(maxStageY, other.posY + pushY)),
                 wobble: wobbleAngle
               };
             }
@@ -114,11 +116,11 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
           });
         });
 
-        // decay displacement back to home position
+        // settle wobble rotation back to 0 without resetting posX and posY
         if (returnTimeoutRef.current) clearTimeout(returnTimeoutRef.current);
         returnTimeoutRef.current = setTimeout(() => {
-          setLetters((prev) => prev.map((l) => ({ ...l, posX: 0, posY: 0, wobble: 0 })));
-        }, 1200);
+          setLetters((prev) => prev.map((l) => ({ ...l, wobble: 0 })));
+        }, 700);
 
         return didHitAny;
       },
@@ -146,13 +148,18 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
       const droppedCenterX = droppedRect.left + droppedRect.width / 2;
       const droppedCenterY = droppedRect.top + droppedRect.height / 2;
 
+      const maxStageX = typeof window !== 'undefined' ? Math.max(160, window.innerWidth * 0.44) : 400;
+      const maxStageY = typeof window !== 'undefined' ? Math.max(140, window.innerHeight * 0.32) : 220;
+
       setLetters((prev) =>
         prev.map((item) => {
           if (item.id === id) {
+            const nextX = Math.max(-maxStageX, Math.min(maxStageX, item.posX + info.offset.x));
+            const nextY = Math.max(-maxStageY, Math.min(maxStageY, item.posY + info.offset.y));
             return {
               ...item,
-              posX: item.posX + info.offset.x,
-              posY: item.posY + info.offset.y,
+              posX: nextX,
+              posY: nextY,
               wobble: 0
             };
           }
@@ -165,6 +172,22 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
       setTimeout(() => {
         setLetters((prev) => prev.map((l) => ({ ...l, wobble: 0 })));
       }, 600);
+    };
+
+    const handleLetterDoubleClick = (id: string) => {
+      setLetters((prev) =>
+        prev.map((item) => {
+          if (item.id === id) {
+            return {
+              ...item,
+              posX: 0,
+              posY: 0,
+              wobble: 0
+            };
+          }
+          return item;
+        })
+      );
     };
 
     const handleDuckDrop = (clientX: number, clientY: number, velocity: number) => {
@@ -197,10 +220,18 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
 
       let didHitLetter = false;
 
-      // letter collision check
+      // letter collision check with per-letter hit cooldown to prevent runaway acceleration
       setLetters((prev) => {
         let moved = false;
+        const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
+        const hitThreshold = isMobile ? 60 : 110;
+        const maxStageX = typeof window !== 'undefined' ? Math.max(160, window.innerWidth * 0.44) : 400;
+        const maxStageY = typeof window !== 'undefined' ? Math.max(140, window.innerHeight * 0.32) : 220;
+
         const updated = prev.map((letter) => {
+          const lastHit = lastLetterHitTimeRef.current[letter.id] || 0;
+          if (now - lastHit < 1100) return letter;
+
           const el = document.getElementById(`letter-${letter.id}`);
           if (!el) return letter;
 
@@ -212,23 +243,21 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
           const dy = letterCenterY - duckY;
           const dist = Math.sqrt(dx ** 2 + dy ** 2);
 
-          const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
-          const hitThreshold = isMobile ? 55 : 105;
-          const maxDisplacement = isMobile ? 18 : 45;
-
           if (dist < hitThreshold && dist > 0) {
             moved = true;
             didHitLetter = true;
-            const pushY = dy >= 0 ? (isMobile ? 10 : 22) : (isMobile ? -10 : -22);
-            const pushX = dx >= 0 ? (isMobile ? 8 : 14) : (isMobile ? -4 : -6);
-            const wobble = dy >= 0 ? 8 : -8;
+            lastLetterHitTimeRef.current[letter.id] = now;
+
+            const pushY = dy >= 0 ? (isMobile ? 14 : 26) : (isMobile ? -14 : -26);
+            const pushX = dx >= 0 ? (isMobile ? 12 : 22) : (isMobile ? -8 : -14);
+            const wobble = dy >= 0 ? 9 : -9;
 
             onRipple(letterCenterX, letterCenterY, 55);
 
             return {
               ...letter,
-              posX: Math.max(-maxDisplacement, Math.min(maxDisplacement, letter.posX + pushX)),
-              posY: Math.max(-maxDisplacement, Math.min(maxDisplacement, letter.posY + pushY)),
+              posX: Math.max(-maxStageX, Math.min(maxStageX, letter.posX + pushX)),
+              posY: Math.max(-maxStageY, Math.min(maxStageY, letter.posY + pushY)),
               wobble
             };
           }
@@ -248,14 +277,17 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
 
         if (returnTimeoutRef.current) clearTimeout(returnTimeoutRef.current);
         returnTimeoutRef.current = setTimeout(() => {
-          setLetters((prev) => prev.map((l) => ({ ...l, posX: 0, posY: 0, wobble: 0 })));
-        }, 1200);
+          setLetters((prev) => prev.map((l) => ({ ...l, wobble: 0 })));
+        }, 800);
       }
     };
 
     useImperativeHandle(ref, () => ({
       handleDuckDrop,
       handleDuckSwim,
+      resetLetters: () => {
+        setLetters(INITIAL_LETTERS.map((item) => ({ ...item, posX: 0, posY: 0, wobble: 0 })));
+      },
       duckExpression
     }));
 
@@ -275,39 +307,44 @@ export const HeroPhysicsStage = forwardRef<HeroPhysicsStageHandle, HeroPhysicsSt
           dragElastic={0}
           onDragStart={() => handleLetterDragStart(letter.id)}
           onDragEnd={(e, info) => handleLetterDragEnd(letter.id, e, info)}
+          onDoubleClick={() => handleLetterDoubleClick(letter.id)}
           style={{ touchAction: 'none' }}
           animate={{
             x: letter.posX,
-            y: isGrabbed ? letter.posY - 28 : letter.posY,
-            rotate: isGrabbed ? (letter.letterIdx % 2 === 0 ? 6 : -6) : letter.wobble,
-            scale: isGrabbed ? 1.22 : 1,
+            y: letter.posY,
+            rotate: isGrabbed ? (letter.letterIdx % 2 === 0 ? 5 : -5) : letter.wobble,
+            scale: isGrabbed ? 1.2 : 1,
             zIndex: isGrabbed ? 60 : 20
           }}
           transition={{
             type: 'spring',
-            stiffness: 170,
-            damping: 17,
+            stiffness: 180,
+            damping: 18,
             mass: 0.8
           }}
           whileHover={{ scale: 1.12 }}
-          whileTap={{ scale: 1.25 }}
+          whileTap={{ scale: 1.22 }}
           className="relative inline-block cursor-grab active:cursor-grabbing select-none p-1 sm:p-2.5 mx-0.5 sm:mx-1.5 md:mx-2.5 pointer-events-auto"
         >
           <motion.div
             animate={
               isGrabbed
-                ? { y: 0, rotate: 0 }
+                ? { y: -16, rotate: 0 }
                 : {
                   y: [0, -7, 0, 6, 0],
                   rotate: [0, -1.2, 0, 1.2, 0]
                 }
             }
-            transition={{
-              repeat: Infinity,
-              duration: 3.8,
-              delay: phaseDelay,
-              ease: 'easeInOut'
-            }}
+            transition={
+              isGrabbed
+                ? { type: 'spring', stiffness: 320, damping: 22 }
+                : {
+                  repeat: Infinity,
+                  duration: 3.8,
+                  delay: phaseDelay,
+                  ease: 'easeInOut'
+                }
+            }
             className="relative"
           >
             <div className="absolute -bottom-4 left-1 right-1 h-4 bg-[#c4ad82]/40 rounded-full blur-[4px] transform scale-y-50" />

@@ -108,13 +108,19 @@ export const OceanHeroCanvas = forwardRef<OceanHeroHandle, { className?: string 
       if (!ctx) return;
 
       let isRunning = true;
+      let isVisible = true;
+      let currentWidth = 0;
+      let currentHeight = 0;
 
       const handleResize = () => {
         if (!canvas) return;
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const rect = canvas.getBoundingClientRect();
+        currentWidth = rect.width;
+        currentHeight = rect.height;
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(dpr, dpr);
       };
 
@@ -122,10 +128,13 @@ export const OceanHeroCanvas = forwardRef<OceanHeroHandle, { className?: string 
       window.addEventListener('resize', handleResize);
 
       const render = () => {
-        if (!isRunning || !canvas) return;
-        const rect = canvas.getBoundingClientRect();
-        const width = rect.width;
-        const height = rect.height;
+        if (!isRunning || !isVisible || !canvas || currentWidth === 0) {
+          animRef.current = null;
+          return;
+        }
+
+        const width = currentWidth;
+        const height = currentHeight;
 
         ctx.clearRect(0, 0, width, height);
         timeRef.current += 0.014;
@@ -281,10 +290,23 @@ export const OceanHeroCanvas = forwardRef<OceanHeroHandle, { className?: string 
         animRef.current = requestAnimationFrame(render);
       };
 
-      animRef.current = requestAnimationFrame(render);
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            isVisible = entry.isIntersecting;
+            if (isVisible && !animRef.current && isRunning) {
+              animRef.current = requestAnimationFrame(render);
+            }
+          });
+        },
+        { threshold: 0.05 }
+      );
+
+      observer.observe(canvas);
 
       return () => {
         isRunning = false;
+        observer.disconnect();
         if (animRef.current) cancelAnimationFrame(animRef.current);
         window.removeEventListener('resize', handleResize);
       };

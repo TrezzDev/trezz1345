@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, type MotionValue } from 'framer-motion';
 import type { Project, ProjectCategory } from '../../types/portfolio';
 import { projectsData } from '../../data/portfolioData';
 import { FlagshipSlideCard } from './FlagshipProjectParallax';
@@ -9,6 +9,92 @@ import { ProjectCaseStudyModal } from './ProjectCaseStudyModal';
 interface ProjectShowcaseProps {
   onOpenProject?: (project: Project) => void;
 }
+
+interface IndicatorBarProps {
+  index: number;
+  smoothProgress: MotionValue<number>;
+  totalCount: number;
+}
+
+const IndicatorBar: React.FC<IndicatorBarProps> = ({ index, smoothProgress, totalCount }) => {
+  const step = 1 / totalCount;
+  const scaleX = useTransform(
+    smoothProgress,
+    [index * step, (index + 1) * step],
+    [0, 1],
+    { clamp: true }
+  );
+
+  return (
+    <div className="h-2 sm:h-2.5 rounded-full bg-[#faeed1] border border-[#0f172a] overflow-hidden w-4 sm:w-8">
+      <motion.div className="h-full bg-[#0284c7]" style={{ scaleX }} />
+    </div>
+  );
+};
+
+interface FlagshipSlideStageProps {
+  project: Project;
+  index: number;
+  totalStages: number;
+  totalFlagships: number;
+  smoothProgress: MotionValue<number>;
+  onSelectProject: (project: Project) => void;
+}
+
+const FlagshipSlideStage: React.FC<FlagshipSlideStageProps> = ({
+  project,
+  index,
+  totalStages,
+  totalFlagships,
+  smoothProgress,
+  onSelectProject
+}) => {
+  const interval = 1 / totalStages;
+  const start = (index - 0.2) * interval;
+  const end = (index + 0.3) * interval;
+
+  const y = useTransform(smoothProgress, [start, end], ['100%', '0%'], { clamp: true });
+  const yMotion = index === 0 ? '0%' : y;
+
+  return (
+    <FlagshipSlideCard
+      project={project}
+      index={index}
+      totalFlagships={totalFlagships}
+      yMotion={yMotion}
+      depthLevel={Math.min(index + 1, 5) as 1 | 2 | 3 | 4 | 5}
+      onSelectProject={onSelectProject}
+    />
+  );
+};
+
+interface DockStageProps {
+  dockIndex: number;
+  totalStages: number;
+  smoothProgress: MotionValue<number>;
+  children: React.ReactNode;
+}
+
+const DockStage: React.FC<DockStageProps> = ({
+  dockIndex,
+  totalStages,
+  smoothProgress,
+  children
+}) => {
+  const interval = 1 / totalStages;
+  const start = (dockIndex - 0.2) * interval;
+  const end = (dockIndex + 0.3) * interval;
+  const ySlide = useTransform(smoothProgress, [start, end], ['100%', '0%'], { clamp: true });
+
+  return (
+    <motion.div
+      style={{ y: ySlide, zIndex: (dockIndex + 1) * 10 }}
+      className="absolute inset-0 w-full h-full bg-[#020d18] shadow-[0_-8px_24px_rgba(15,23,42,0.35)]"
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ onOpenProject }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -20,6 +106,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ onOpenProject 
 
   // featured flagship projects
   const flagshipProjects = projectsData.filter((p) => p.featured);
+  const totalStages = flagshipProjects.length + 1; // Flagships + Dock
 
   // pinning scroll progress
   const { scrollYProgress } = useScroll({
@@ -27,85 +114,53 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ onOpenProject 
     offset: ['start start', 'end end']
   });
 
-  // smooth inertial spring for tactile deceleration
+  // responsive spring synced with Lenis smooth scrolling
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 55,
-    damping: 20,
-    mass: 0.3,
+    stiffness: 260,
+    damping: 32,
+    mass: 0.1,
     restDelta: 0.0005
   });
-
-  // gradual overlapping curtain wipe ranges
-  const ySlide2 = useTransform(smoothProgress, [0.22, 0.36], ['100%', '0%'], { clamp: true });
-  const ySlide3 = useTransform(smoothProgress, [0.47, 0.61], ['100%', '0%'], { clamp: true });
-  const ySlide4 = useTransform(smoothProgress, [0.72, 0.86], ['100%', '0%'], { clamp: true });
 
   return (
     <section
       id="projects"
       ref={containerRef}
-      className="relative h-[560vh] bg-[#fff9d4] select-none"
+      style={{ height: `${totalStages * 140}vh` }}
+      className="relative bg-[#fdf6db] select-none"
     >
       {/* pinned viewport stage */}
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         {/* progress indicators */}
         <div className="absolute top-[76px] sm:top-24 right-4 sm:right-12 z-50 flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#fffdf5] border-2 border-[#0f172a] shadow-[2.5px_2.5px_0px_#0f172a] sm:shadow-[4px_4px_0px_#0f172a]">
-          {[0, 1, 2, 3].map((idx) => (
-            <div
+          {Array.from({ length: totalStages }).map((_, idx) => (
+            <IndicatorBar
               key={idx}
-              className="h-2 sm:h-2.5 rounded-full bg-[#faeed1] border border-[#0f172a] overflow-hidden w-5 sm:w-10"
-            >
-              <motion.div
-                className="h-full bg-[#0284c7]"
-                style={{
-                  scaleX: useTransform(
-                    smoothProgress,
-                    [idx * 0.25, (idx + 1) * 0.25],
-                    [0, 1],
-                    { clamp: true }
-                  )
-                }}
-                transition={{ ease: 'easeOut' }}
-              />
-            </div>
+              index={idx}
+              smoothProgress={smoothProgress}
+              totalCount={totalStages}
+            />
           ))}
         </div>
 
         {/* flagship slide presentation */}
-        {flagshipProjects[0] && (
-          <FlagshipSlideCard
-            project={flagshipProjects[0]}
-            index={0}
-            yMotion="0%"
-            depthLevel={1}
+        {flagshipProjects.map((project, index) => (
+          <FlagshipSlideStage
+            key={project.id}
+            project={project}
+            index={index}
+            totalStages={totalStages}
+            totalFlagships={flagshipProjects.length}
+            smoothProgress={smoothProgress}
             onSelectProject={handleSelect}
           />
-        )}
-
-        {flagshipProjects[1] && (
-          <FlagshipSlideCard
-            project={flagshipProjects[1]}
-            index={1}
-            yMotion={ySlide2}
-            depthLevel={2}
-            onSelectProject={handleSelect}
-          />
-        )}
-
-        {flagshipProjects[2] && (
-          <FlagshipSlideCard
-            project={flagshipProjects[2]}
-            index={2}
-            yMotion={ySlide3}
-            depthLevel={3}
-            onSelectProject={handleSelect}
-          />
-        )}
+        ))}
 
         {/* project index overview */}
-        <motion.div
-          style={{ y: ySlide4, zIndex: 40 }}
-          className="absolute inset-0 w-full h-full bg-[#02587a] shadow-[0_-8px_24px_rgba(15,23,42,0.35)]"
+        <DockStage
+          dockIndex={flagshipProjects.length}
+          totalStages={totalStages}
+          smoothProgress={smoothProgress}
         >
           <FilteredProjectDock
             projects={projectsData}
@@ -113,14 +168,14 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ onOpenProject 
             onSelectCategory={setSelectedCategory}
             onSelectProject={handleSelect}
           />
-        </motion.div>
+        </DockStage>
       </div>
 
-      {/* local fallback case study modal */}
-      {!onOpenProject && activeProject && (
+      {/* modal case study */}
+      {activeProject && (
         <ProjectCaseStudyModal
           project={activeProject}
-          isOpen={!!activeProject}
+          isOpen={Boolean(activeProject)}
           onClose={() => setLocalActiveProject(null)}
         />
       )}

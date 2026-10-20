@@ -54,7 +54,7 @@ export const TechGrid: React.FC<TechGridProps> = ({ onOpenProject }) => {
   };
 
   return (
-    <section id="stack" className="relative z-20 -mt-1 w-full bg-[#fff9d4] select-none">
+    <section id="stack" className="relative z-20 -mt-1 w-full bg-gradient-to-b from-[#fdf6db] via-[#f7ebc2] to-[#edd69a] select-none">
       {/* background decorations */}
       <TechBeachDecorations />
 

@@ -68,8 +68,9 @@ export const JourneyTimeline: React.FC = () => {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 90,
-    damping: 24,
+    stiffness: 240,
+    damping: 30,
+    mass: 0.1,
     restDelta: 0.001
   });
 

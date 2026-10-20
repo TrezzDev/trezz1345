@@ -4,12 +4,14 @@ interface BrandLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   withText?: boolean;
+  theme?: 'light' | 'dark';
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   className = '',
   size = 'md',
-  withText = false
+  withText = false,
+  theme = 'dark'
 }) => {
   const sizeMap = {
     sm: { img: 'w-8 h-8', text: 'text-xs' },
@@ -33,10 +35,22 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
       {withText && (
         <div className="flex flex-col text-left">
-          <span className={`font-bold text-white tracking-wide leading-tight drop-shadow-sm ${currentSize.text}`}>
+          <span
+            className={`font-black tracking-wide leading-tight transition-colors duration-300 ${
+              theme === 'light'
+                ? 'text-[#0f172a] drop-shadow-none'
+                : 'text-white drop-shadow-sm'
+            } ${currentSize.text}`}
+          >
             Reyhand Astra
           </span>
-          <span className="text-[11px] text-[#fff9d4] font-mono font-medium flex items-center gap-1 drop-shadow-xs">
+          <span
+            className={`text-[11px] font-mono font-bold flex items-center gap-1 transition-colors duration-300 ${
+              theme === 'light'
+                ? 'text-[#8c6239] drop-shadow-none'
+                : 'text-[#fff9d4] drop-shadow-xs'
+            }`}
+          >
             &gt;_ Full-Stack &amp; Mobile
           </span>
         </div>

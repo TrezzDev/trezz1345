@@ -12,6 +12,7 @@ import type { BeachCrabHandle } from './BeachCrab';
 import { BeachDecorations } from './BeachDecorations';
 import { TactileButton } from '../ui/TactileButton';
 import { profileData } from '../../data/portfolioData';
+import { scrollToTarget } from '../../hooks/useLenisSmoothScroll';
 
 export const HeroSection: React.FC = () => {
   const oceanRef = useRef<OceanHeroHandle | null>(null);
@@ -82,14 +83,11 @@ export const HeroSection: React.FC = () => {
   };
 
   const handleScrollToProjects = () => {
-    const el = document.getElementById('projects');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToTarget('#projects', -80);
   };
 
   return (
-    <section className="relative w-full h-screen min-h-[700px] flex flex-col justify-between pt-16 pb-10 overflow-hidden select-none">
+    <section id="hero" className="relative w-full h-screen min-h-[700px] flex flex-col justify-between pt-16 pb-10 overflow-hidden select-none">
       <div className="absolute inset-0 z-0 pointer-events-auto">
         <OceanHeroCanvas ref={oceanRef} />
       </div>

@@ -14,21 +14,46 @@ export const ProfileDuneBackground: React.FC<ProfileDuneBackgroundProps> = ({ is
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="none"
-          className="w-full h-full opacity-70"
+          className="w-full h-full opacity-60"
         >
+          <defs>
+            <linearGradient id="profileDuneGrad1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fffdf5" stopOpacity="0.25" />
+              <stop offset="50%" stopColor="#f8edc8" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#f3dfb2" stopOpacity="0.2" />
+            </linearGradient>
+
+            <linearGradient id="profileDuneGrad2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={isFlooded ? '#dfcca8' : '#f8ecc8'} stopOpacity="0.3" />
+              <stop offset="50%" stopColor={isFlooded ? '#d4bfa0' : '#f3e1b4'} stopOpacity="0.35" />
+              <stop offset="100%" stopColor={isFlooded ? '#c8b290' : '#ebd59e'} stopOpacity="0.2" />
+            </linearGradient>
+
+            <linearGradient id="profileDuneGrad3" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={isFlooded ? '#cfb992' : '#f5e2b6'} stopOpacity="0.25" />
+              <stop offset="60%" stopColor={isFlooded ? '#c4ab82' : '#ebd49e'} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={isFlooded ? '#b89d70' : '#e2c686'} stopOpacity="0.15" />
+            </linearGradient>
+
+            <filter id="profileDuneFeather" x="-10%" y="-10%" width="120%" height="120%">
+              <feGaussianBlur stdDeviation="3" />
+            </filter>
+          </defs>
+
           <path
             d="M-100,80 Q420,220 880,100 T1540,180 L1540,900 L-100,900 Z"
-            fill="#fcf3d1"
+            fill="url(#profileDuneGrad1)"
+            filter="url(#profileDuneFeather)"
           />
           <path
             d="M-100,280 Q520,420 1020,260 T1540,380 L1540,900 L-100,900 Z"
-            fill={isFlooded ? '#e8d8a7' : '#f6e8ba'}
-            opacity="0.85"
+            fill="url(#profileDuneGrad2)"
+            filter="url(#profileDuneFeather)"
           />
           <path
             d="M-100,520 Q360,660 920,480 T1540,620 L1540,900 L-100,900 Z"
-            fill={isFlooded ? '#dfcca8' : '#f0dc9f'}
-            opacity="0.7"
+            fill="url(#profileDuneGrad3)"
+            filter="url(#profileDuneFeather)"
           />
         </svg>
       </div>
@@ -38,23 +63,23 @@ export const ProfileDuneBackground: React.FC<ProfileDuneBackgroundProps> = ({ is
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="none"
-        className="absolute inset-0 w-full h-full opacity-40"
+        className="absolute inset-0 w-full h-full opacity-20"
       >
         <path
           d="M0,140 Q460,250 940,160 T1440,240"
-          stroke="#dfcca8"
+          stroke="#c4ad82"
           strokeWidth="1.5"
           strokeDasharray="6 8"
         />
         <path
           d="M0,340 Q560,460 1040,320 T1440,420"
-          stroke="#c4ad82"
+          stroke="#b89c6b"
           strokeWidth="1.5"
           strokeDasharray="8 10"
         />
         <path
           d="M0,580 Q400,680 960,540 T1440,640"
-          stroke="#b39768"
+          stroke="#a68551"
           strokeWidth="1.5"
         />
       </svg>

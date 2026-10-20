@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -7,12 +7,8 @@ interface FloodWaveOverlayProps {
 }
 
 export const FloodWaveOverlay: React.FC<FloodWaveOverlayProps> = ({ isFlooding }) => {
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => typeof document !== 'undefined');
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted || typeof document === 'undefined') return null;
 

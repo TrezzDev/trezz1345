@@ -35,7 +35,7 @@ export const FilteredProjectDock: React.FC<FilteredProjectDockProps> = ({
     },
     {
       id: 'mobile',
-      label: 'Mobile Flutter',
+      label: 'Aplikasi Mobile',
       count: projects.filter((p) => p.category === 'mobile').length
     }
   ];
@@ -52,14 +52,14 @@ export const FilteredProjectDock: React.FC<FilteredProjectDockProps> = ({
   return (
     <div className="absolute inset-0 w-full h-full flex flex-col justify-start sm:justify-between overflow-hidden select-none">
       {/* ocean background */}
-      <AnimatedOceanSlideBackground depthLevel={4} />
+      <AnimatedOceanSlideBackground depthLevel={5} />
 
       {/* category and project filter navigation */}
       <div className="relative z-10 max-w-7xl mx-auto w-full pt-20 sm:pt-24 px-4 sm:px-12 flex flex-col gap-2 sm:gap-3 shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
           <div>
             <span className="text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider text-[#0f172a] bg-[#fde047] px-2 py-0.5 sm:px-3 sm:py-0.5 rounded-lg border-2 border-[#0f172a] shadow-[2px_2px_0px_#0f172a] inline-block mb-1">
-              04 // INDEKS PORTOFOLIO
+              05 // INDEKS PORTOFOLIO
             </span>
             <h3 className="text-lg sm:text-2xl font-black text-white sm:text-[#0f172a] tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] sm:drop-shadow-none">
               Eksplorasi Proyek &amp; Hasil Rekayasa
@@ -137,7 +137,7 @@ export const FilteredProjectDock: React.FC<FilteredProjectDockProps> = ({
       {/* project inspection stage */}
       <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-12 mt-2 sm:mt-auto sm:my-auto flex flex-col lg:grid lg:grid-cols-12 gap-3 sm:gap-5 items-stretch lg:items-center">
         {/* desktop project selector */}
-        <div className="hidden lg:flex lg:col-span-5 flex-col justify-center space-y-2.5 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#0284c7] scrollbar-track-[#fffdf5]/50">
+        <div className="hidden lg:flex lg:col-span-5 flex-col justify-start space-y-2 lg:max-h-[480px] overflow-y-auto p-1.5 scrollbar-thin scrollbar-thumb-[#0284c7] scrollbar-track-[#fffdf5]/50">
           {filteredProjects.map((project, idx) => {
             const isSelected = activeProject.id === project.id;
 
@@ -146,7 +146,7 @@ export const FilteredProjectDock: React.FC<FilteredProjectDockProps> = ({
                 key={project.id}
                 whileHover={{ x: 4 }}
                 onClick={() => setActiveProjectId(project.id)}
-                className={`p-3 sm:p-3.5 rounded-[20px] border-2 border-[#0f172a] cursor-pointer transition-all duration-200 ${
+                className={`p-2.5 sm:px-3 sm:py-2.5 rounded-[18px] border-2 border-[#0f172a] cursor-pointer transition-all duration-200 ${
                   isSelected
                     ? 'bg-[#fde047] shadow-[4px_4px_0px_#0f172a] -translate-y-0.5'
                     : 'bg-[#fffdf5]/95 hover:bg-[#fff9d4] shadow-[2px_2px_0px_#0f172a]'
@@ -158,7 +158,11 @@ export const FilteredProjectDock: React.FC<FilteredProjectDockProps> = ({
                       0{idx + 1}
                     </span>
                     <span className="text-[11px] font-mono font-bold text-[#0284c7]">
-                      {project.category === 'fullstack' ? 'Full-Stack Web' : 'Mobile Flutter'}
+                      {project.category === 'fullstack'
+                        ? 'Full-Stack Web'
+                        : project.stack.includes('Flutter')
+                        ? 'Mobile Flutter'
+                        : 'Mobile PWA'}
                     </span>
                   </div>
 

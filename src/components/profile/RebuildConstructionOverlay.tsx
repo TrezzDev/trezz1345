@@ -8,29 +8,27 @@ interface RebuildConstructionOverlayProps {
   progress: number;
 }
 
+const comicSounds = [
+  { icon: <Hammer className="w-5 h-5 text-[#f59e0b]" />, label: 'CLANK!' },
+  { icon: <Wrench className="w-5 h-5 text-[#0284c7]" />, label: 'FIXING!' },
+  { icon: <Cpu className="w-5 h-5 text-[#059669]" />, label: 'STRUCTURING!' },
+  { icon: <Terminal className="w-5 h-5 text-[#8c6239]" />, label: 'RESTORE!' },
+  { icon: <Check className="w-5 h-5 text-[#059669]" />, label: 'PERFECT!' }
+];
+
 export const RebuildConstructionOverlay: React.FC<RebuildConstructionOverlayProps> = ({
   isRebuilding,
   progress
 }) => {
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => typeof document !== 'undefined');
   const [comicTextIndex, setComicTextIndex] = useState(0);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const comicSounds = [
-    { icon: <Hammer className="w-5 h-5 text-[#f59e0b]" />, label: 'CLANK!' },
-    { icon: <Wrench className="w-5 h-5 text-[#0284c7]" />, label: 'FIXING!' },
-    { icon: <Cpu className="w-5 h-5 text-[#059669]" />, label: 'STRUCTURING!' },
-    { icon: <Terminal className="w-5 h-5 text-[#8c6239]" />, label: 'RESTORE!' },
-    { icon: <Check className="w-5 h-5 text-[#059669]" />, label: 'PERFECT!' }
-  ];
-
-  useEffect(() => {
     if (!isRebuilding) {
-      setComicTextIndex(0);
-      return;
+      const timer = setTimeout(() => {
+        setComicTextIndex(0);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     const interval = setInterval(() => {
